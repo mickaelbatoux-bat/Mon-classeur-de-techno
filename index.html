@@ -14,8 +14,8 @@
    Mets un fichier nomme "fond.jpg" dans le meme dossier que ce fichier html.
    ============================================================ */
 :root{
-  --logo-url: url('logo.png');
-  --bg-url: url('fond.jpg');
+  --logo-url: none;
+  --bg-url: none;
   --jaune:#E8A000;--bleu:#2C5F8A;--t:#1A1A2E;--t2:#6B7280;--b:#E5E7EB;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -39,7 +39,9 @@ img{max-width:100%}
 .login-wrap{position:relative;z-index:2;width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center}
 
 .logo-wrap{width:88px;height:88px;border-radius:50%;background:#fff;border:3px solid var(--jaune);display:flex;align-items:center;justify-content:center;margin-bottom:-26px;z-index:3;position:relative;box-shadow:0 4px 20px rgba(0,0,0,.3);overflow:hidden;flex-shrink:0}
-.logo-wrap .logo-img{width:100%;height:100%;background-image:var(--logo-url);background-size:cover;background-position:center;border-radius:50%}
+.logo-wrap .logo-img{width:100%;height:100%;background-image:var(--logo-url);background-size:cover;background-position:center;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.logo-wrap .logo-img:empty::before,.logo-img[style*="none"]::before{content:'';}
+.logo-fallback-icon{font-size:24px;color:#C4CDD6}
 
 .login-card{background:#fff;border-radius:16px;padding:2.1rem 1.5rem 1.6rem;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.3)}
 .login-title{font-family:'Oswald',sans-serif;font-size:18px;font-weight:700;color:#1A1A2E;text-align:center;margin-bottom:2px;line-height:1.25}
@@ -180,6 +182,16 @@ input:checked+.slt:before{transform:translateX(16px)}
 .bsave{background:#16A34A;border:none;border-radius:7px;padding:8px 16px;font-size:12px;font-family:'Oswald',sans-serif;color:#fff;cursor:pointer;margin-top:10px;font-weight:600}
 .saveok{font-size:11px;color:#16A34A;margin-left:8px;display:none}
 
+.design-section{background:#F9FAFB;border:1px solid var(--b);border-radius:10px;padding:1rem;margin-bottom:1rem}
+.design-lbl{font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;color:var(--t);margin-bottom:6px}
+.design-hint{font-size:11px;color:var(--t2);margin-bottom:.7rem;line-height:1.5}
+.design-hint a{color:var(--bleu);text-decoration:underline}
+.design-preview-row{display:flex;align-items:center;gap:10px;margin-top:10px}
+.design-preview-label{font-size:11px;color:var(--t2);flex-shrink:0}
+.design-logo-preview{width:50px;height:50px;border-radius:50%;background:#fff;border:2px solid var(--b);background-size:cover;background-position:center;flex-shrink:0}
+.design-bg-preview{width:100%;max-width:200px;height:70px;border-radius:8px;background:#E5E7EB;border:1px solid var(--b);background-size:cover;background-position:center}
+.design-warning{font-size:11px;color:#92400E;background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:.7rem .9rem;margin-top:1rem;line-height:1.5}
+
 @media(max-width:380px){
   .pgrid{gap:6px}
   .sgrid,.cgrid{grid-template-columns:1fr 1fr}
@@ -277,9 +289,33 @@ input:checked+.slt:before{transform:translateX(16px)}
     <div class="atabs">
       <button class="atab sel" onclick="swA('unlock',this)">🔓 Déverrouillage</button>
       <button class="atab" onclick="swA('edit',this)">✏️ Modifier le contenu</button>
+      <button class="atab" onclick="swA('design',this)">🎨 Design</button>
     </div>
     <div class="apanel vis" id="ap-unlock"><div class="ptabs" id="ptabs"></div><div id="ptoggles"></div><div class="codebox"><p>Codes d'accès</p><div class="codegrid" id="codegrid"></div></div></div>
     <div class="apanel" id="ap-edit"><div class="ptabs" id="etabs"></div><div class="elist" id="elist"></div></div>
+    <div class="apanel" id="ap-design">
+      <div class="design-section">
+        <div class="design-lbl">Logo (cercle en haut de la page de connexion + bandeau)</div>
+        <div class="design-hint">Colle ici le lien direct vers ton image (se termine par .png, .jpg...). Tu peux héberger ton image gratuitement sur <a href="https://imgur.com/upload" target="_blank" rel="noopener">imgur.com/upload</a> : dépose ton fichier, clic droit sur l'image obtenue → "Copier l'adresse de l'image".</div>
+        <input class="fi" id="design-logo-input" placeholder="https://i.imgur.com/exemple.png" oninput="previewDesign()">
+        <div class="design-preview-row">
+          <div class="design-preview-label">Aperçu :</div>
+          <div class="design-logo-preview" id="design-logo-preview"></div>
+        </div>
+      </div>
+      <div class="design-section">
+        <div class="design-lbl">Photo de fond (page de connexion)</div>
+        <div class="design-hint">Même principe : héberge ta photo sur Imgur puis colle son lien direct ici.</div>
+        <input class="fi" id="design-bg-input" placeholder="https://i.imgur.com/exemple.jpg" oninput="previewDesign()">
+        <div class="design-preview-row">
+          <div class="design-preview-label">Aperçu :</div>
+          <div class="design-bg-preview" id="design-bg-preview"></div>
+        </div>
+      </div>
+      <button class="bsave" onclick="saveDesign()">✓ Enregistrer le design</button>
+      <span class="saveok" id="design-saveok">Sauvegardé !</span>
+      <div class="design-warning">⚠️ Cet enregistrement fonctionne pour cette session. Pour que le changement soit permanent pour tous tes apprentis, demande-moi de régénérer le fichier complet avec ces nouveaux liens une fois que tu es satisfait du résultat.</div>
+    </div>
   </div>
 </div>
 
@@ -504,7 +540,7 @@ function showGlo(){
   document.getElementById('gsub').textContent=cpk?PR[cpk].label:'';
   document.getElementById('gs').value='';ogi=-1;rAbar(GL);rGlist(GL);
 }
-function showA(){hideAll();document.getElementById('SA').style.display='block';rPtabs();rToggles();rCodes();rEtabs();rElist();}
+function showA(){hideAll();document.getElementById('SA').style.display='block';rPtabs();rToggles();rCodes();rEtabs();rElist();loadDesignInputs();}
 function logout(){
   cp=null;cpk=null;
   document.getElementById('ci').value='';
@@ -669,6 +705,43 @@ function svS(i){
 function aRes(i){const s=PR[cep].stages[i];if(!s.res)s.res=[];s.res.push({type:'ppt',name:'',url:''});oei=i;rElist();}
 function dRes(i,ri){PR[cep].stages[i].res.splice(ri,1);oei=i;rElist();}
 
+// ============================================================
+// DESIGN — Logo et fond personnalisables
+// ============================================================
+function applyDesign(){
+  const logo=localStorage.getItem('btpcfa_logo_url');
+  const bg=localStorage.getItem('btpcfa_bg_url');
+  const root=document.documentElement;
+  if(logo)root.style.setProperty('--logo-url','url("'+logo+'")');
+  if(bg)root.style.setProperty('--bg-url','url("'+bg+'")');
+}
+function loadDesignInputs(){
+  const logo=localStorage.getItem('btpcfa_logo_url')||'';
+  const bg=localStorage.getItem('btpcfa_bg_url')||'';
+  document.getElementById('design-logo-input').value=logo;
+  document.getElementById('design-bg-input').value=bg;
+  previewDesign();
+}
+function previewDesign(){
+  const logo=document.getElementById('design-logo-input').value.trim();
+  const bg=document.getElementById('design-bg-input').value.trim();
+  const lp=document.getElementById('design-logo-preview');
+  const bp=document.getElementById('design-bg-preview');
+  lp.style.backgroundImage=logo?`url('${logo}')`:'none';
+  bp.style.backgroundImage=bg?`url('${bg}')`:'none';
+}
+function saveDesign(){
+  const logo=document.getElementById('design-logo-input').value.trim();
+  const bg=document.getElementById('design-bg-input').value.trim();
+  if(logo)localStorage.setItem('btpcfa_logo_url',logo);
+  if(bg)localStorage.setItem('btpcfa_bg_url',bg);
+  applyDesign();
+  const ok=document.getElementById('design-saveok');
+  ok.style.display='inline';
+  setTimeout(()=>{ok.style.display='none';},2000);
+}
+
+applyDesign();
 document.getElementById('SL').style.display='flex';
 </script>
 </body>
